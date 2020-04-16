@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memory-utilize
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: memory-utilize
+  template:
+    metadata:
+      labels:
+        app: memory-utilize
+        test: heapdump
+    spec:
+      containers:
+        - name: memory-utilize
+          image: tstuehler/memoryutilize
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: heap-dumps
+              mountPath: /dumps
+        - name: ship-heap-dump
+          image: tstuehler/s3dumpshipper
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: heap-dumps
+              mountPath: /dumps
+          env:
+          - name: S3URL
+            valueFrom:
+              secretKeyRef: 
+                key: S3URL
+                name: s3params
+          - name: S3BUCKET
+            valueFrom:
+              secretKeyRef: 
+                key: S3BUCKET
+                name: s3params
+          - name: S3ACCESS
+            valueFrom:
+              secretKeyRef: 
+                key: S3ACCESS
+                name: s3params
+          - name: S3SECRET
+            valueFrom:
+              secretKeyRef: 
+                key: S3SECRET
+                name: s3params
+      volumes:
+        - name: heap-dumps
+          emptyDir: {}
+        
