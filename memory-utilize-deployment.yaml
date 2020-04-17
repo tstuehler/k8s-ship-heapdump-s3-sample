@@ -20,6 +20,19 @@ spec:
           volumeMounts:
             - name: heap-dumps
               mountPath: /dumps
+          startupProbe:
+            httpGet:
+              path: /memory-utilize
+              port: 8080
+            failureThreshold: 12
+            periodSeconds: 5          
+          livenessProbe:
+            httpGet:
+              path: /memory-utilize/MemoryUtilizeServlet?size=32&num=1&lifespan=1
+              port: 8080
+            initialDelaySeconds: 15
+            failureThreshold: 1
+            periodSeconds: 3
         - name: ship-heap-dump
           image: tstuehler/s3dumpshipper
           imagePullPolicy: IfNotPresent
@@ -49,5 +62,6 @@ spec:
                 name: s3params
       volumes:
         - name: heap-dumps
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: 2Gi
         
